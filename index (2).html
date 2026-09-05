@@ -1,0 +1,570 @@
+<title>우리 학교 10년 후</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+  :root{
+    --ground:#F1F4F6;
+    --surface:#FFFFFF;
+    --surface-2:#F7F9FA;
+    --ink:#16212A;
+    --ink-2:#4B5D69;
+    --ink-3:#7E8F9B;
+    --line:#DCE3E8;
+    --line-soft:#E9EEF1;
+    --accent:#0E7C86;
+    --accent-fill:rgba(14,124,134,.13);
+    --good:#2C7A58;
+    --warn:#A96C12;
+    --crit:#B0362F;
+    --tint:rgba(14,124,134,.07);
+    --shadow:0 1px 2px rgba(22,33,42,.06),0 8px 24px rgba(22,33,42,.06);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#0F1519;
+      --surface:#171F25;
+      --surface-2:#1C252C;
+      --ink:#E7EEF2;
+      --ink-2:#A8B8C2;
+      --ink-3:#748691;
+      --line:#2A343B;
+      --line-soft:#222B31;
+      --accent:#43BAC1;
+      --accent-fill:rgba(67,186,193,.16);
+      --good:#5CBB8D;
+      --warn:#DFA646;
+      --crit:#E4837B;
+      --tint:rgba(67,186,193,.08);
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0F1519;
+    --surface:#171F25;
+    --surface-2:#1C252C;
+    --ink:#E7EEF2;
+    --ink-2:#A8B8C2;
+    --ink-3:#748691;
+    --line:#2A343B;
+    --line-soft:#222B31;
+    --accent:#43BAC1;
+    --accent-fill:rgba(67,186,193,.16);
+    --good:#5CBB8D;
+    --warn:#DFA646;
+    --crit:#E4837B;
+    --tint:rgba(67,186,193,.08);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--ground);
+    color:var(--ink);
+    font-family:"IBM Plex Sans KR",-apple-system,BlinkMacSystemFont,"Malgun Gothic","맑은 고딕",sans-serif;
+    font-size:15px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:28px 20px 64px}
+
+  /* ---------- header ---------- */
+  header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:24px}
+  .eyebrow{
+    font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-3);font-weight:600;margin:0 0 6px;
+  }
+  h1{
+    font-family:"Gowun Batang","Nanum Myeongjo",serif;
+    font-weight:700;font-size:clamp(28px,4.4vw,42px);
+    line-height:1.2;margin:0 0 10px;letter-spacing:-.01em;text-wrap:balance;
+  }
+  .sub{margin:0;color:var(--ink-2);max-width:62ch}
+  .std{
+    margin-top:14px;font-size:12.5px;color:var(--ink-3);
+    display:flex;flex-wrap:wrap;gap:6px 14px;
+  }
+  .std code{
+    font-family:"IBM Plex Mono",monospace;font-size:12px;
+    background:var(--tint);color:var(--ink-2);padding:1px 6px;border-radius:3px;
+  }
+
+  /* ---------- layout ---------- */
+  .cols{display:grid;grid-template-columns:296px 1fr;gap:24px;align-items:start}
+  @media (max-width:860px){.cols{grid-template-columns:1fr}}
+
+  .panel{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:10px;padding:20px;box-shadow:var(--shadow);
+  }
+  .panel h2{
+    font-family:"Gowun Batang",serif;font-size:17px;font-weight:700;
+    margin:0 0 4px;letter-spacing:-.005em;
+  }
+  .panel .note{font-size:12.5px;color:var(--ink-3);margin:0 0 18px;line-height:1.5}
+
+  /* ---------- controls ---------- */
+  .ctrls{display:flex;flex-direction:column;gap:20px}
+  .ctrl-group{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:600;
+    padding-top:4px;border-top:1px solid var(--line-soft)}
+  .ctrl-group:first-child{border-top:none;padding-top:0}
+  .ctrl label{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13.5px;font-weight:500;margin-bottom:7px}
+  .ctrl .val{
+    font-family:"IBM Plex Mono",monospace;font-size:14px;font-weight:500;
+    color:var(--accent);font-variant-numeric:tabular-nums;
+  }
+  .ctrl .hint{font-size:11.5px;color:var(--ink-3);margin-top:5px;line-height:1.45}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:20px;
+    background:transparent;cursor:pointer;display:block;margin:0;
+  }
+  input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:2px}
+  input[type=range]::-moz-range-track{height:4px;background:var(--line);border-radius:2px}
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+    background:var(--accent);border:2px solid var(--surface);margin-top:-6px;
+    box-shadow:0 0 0 1px var(--accent);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:14px;height:14px;border-radius:50%;background:var(--accent);
+    border:2px solid var(--surface);box-shadow:0 0 0 1px var(--accent);
+  }
+  input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:4px}
+  .reset{
+    margin-top:22px;width:100%;padding:9px;border-radius:7px;cursor:pointer;
+    border:1px solid var(--line);background:var(--surface-2);color:var(--ink-2);
+    font-family:inherit;font-size:13px;font-weight:500;
+  }
+  .reset:hover{border-color:var(--accent);color:var(--accent)}
+  .reset:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ---------- results ---------- */
+  .results{display:flex;flex-direction:column;gap:20px}
+
+  .verdict{
+    display:flex;gap:16px;align-items:flex-start;
+    background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);
+    border-radius:10px;padding:18px 20px;box-shadow:var(--shadow);
+  }
+  .verdict .badge{
+    flex:none;font-size:12px;font-weight:600;letter-spacing:.06em;
+    padding:5px 11px;border-radius:100px;white-space:nowrap;
+    border:1px solid currentColor;
+  }
+  .verdict .say{margin:0;font-size:14.5px;color:var(--ink-2);line-height:1.6}
+  .verdict .say strong{color:var(--ink);font-weight:600}
+
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media (max-width:620px){.tiles{grid-template-columns:1fr}}
+  .tile{
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:16px 18px;box-shadow:var(--shadow);
+  }
+  .tile .k{font-size:12px;color:var(--ink-3);font-weight:500;margin:0 0 6px;line-height:1.4}
+  .tile .v{
+    font-family:"IBM Plex Mono",monospace;font-size:30px;font-weight:500;
+    line-height:1.1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;
+  }
+  .tile .v small{font-size:14px;font-family:"IBM Plex Sans KR",sans-serif;font-weight:400;color:var(--ink-3);margin-left:3px}
+  .tile .d{font-size:11.5px;color:var(--ink-3);margin-top:5px}
+
+  .chartbox{
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:18px 18px 12px;box-shadow:var(--shadow);position:relative;
+  }
+  .chart-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+  .chart-head h3{font-family:"Gowun Batang",serif;font-size:16px;font-weight:700;margin:0}
+  .chart-head .legend{font-size:11.5px;color:var(--ink-3)}
+  .chart-head .legend i{
+    display:inline-block;width:10px;height:0;border-top:2px dashed var(--ink-3);
+    vertical-align:middle;margin-right:5px;
+  }
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  .tip{
+    position:absolute;pointer-events:none;opacity:0;transition:opacity .1s;
+    background:var(--ink);color:var(--ground);border-radius:6px;padding:7px 10px;
+    font-size:12px;line-height:1.45;white-space:nowrap;z-index:5;
+    font-variant-numeric:tabular-nums;
+  }
+  .tip b{font-family:"IBM Plex Mono",monospace;font-weight:500}
+
+  .tablebox{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+  .tablebox h3{font-family:"Gowun Batang",serif;font-size:16px;font-weight:700;margin:0;padding:16px 18px 12px}
+  .scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;min-width:520px;font-size:13px}
+  th,td{padding:8px 14px;text-align:right;white-space:nowrap;border-top:1px solid var(--line-soft)}
+  th:first-child,td:first-child{text-align:left}
+  thead th{
+    font-size:11.5px;letter-spacing:.06em;color:var(--ink-3);font-weight:600;
+    background:var(--surface-2);border-top:none;position:sticky;top:0;
+  }
+  tbody td{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+  tbody td:first-child{font-family:"IBM Plex Sans KR",sans-serif;color:var(--ink)}
+  tbody tr:last-child td{color:var(--ink);font-weight:500}
+  .st{font-family:"IBM Plex Sans KR",sans-serif!important;font-size:12px}
+
+  /* ---------- questions ---------- */
+  .asks{margin-top:36px;border-top:1px solid var(--line);padding-top:26px}
+  .asks h2{font-family:"Gowun Batang",serif;font-size:20px;margin:0 0 4px}
+  .asks p.lead{color:var(--ink-2);margin:0 0 20px;font-size:14px;max-width:60ch}
+  .asks ol{list-style:none;counter-reset:q;padding:0;margin:0;display:grid;gap:12px;grid-template-columns:repeat(2,1fr)}
+  @media (max-width:760px){.asks ol{grid-template-columns:1fr}}
+  .asks li{
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:15px 18px;display:flex;gap:14px;align-items:flex-start;
+  }
+  .asks li .tag{
+    flex:none;font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--accent);
+    background:var(--tint);border-radius:4px;padding:3px 8px;margin-top:2px;
+  }
+  .asks li p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.6}
+  .asks li.judge{border-color:var(--accent)}
+  .asks li.judge .tag{background:var(--accent);color:var(--surface)}
+
+  footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3);line-height:1.7}
+  footer b{color:var(--ink-2);font-weight:600}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">「소프트웨어와 생활」 Ⅳ. 모의실험하는 소프트웨어</p>
+    <h1>우리 학교 10년 후</h1>
+    <p class="sub">학령인구가 줄어드는 조건을 직접 바꿔 보면서, 우리 지역 학교가 몇 년 뒤에 존폐 기로에 서는지 확인하는 시뮬레이터입니다. 2026년에 전교생 600명(학년당 200명)인 고등학교에서 출발합니다.</p>
+    <p class="std">
+      <span><code>12소생04-03</code> 복잡한 문제나 현상의 원리를 시뮬레이션 모델로 표현한다</span>
+      <span><code>12소생04-04</code> 소프트웨어를 적극적으로 활용하여 시뮬레이션 모델을 구현한다</span>
+    </p>
+  </header>
+
+  <div class="cols">
+    <!-- ============ 조작부 ============ -->
+    <form class="panel" id="ctrls" autocomplete="off">
+      <h2>조건 바꾸기</h2>
+      <p class="note">네 가지 값을 움직이면 오른쪽 결과가 바로 다시 계산됩니다.</p>
+
+      <div class="ctrls">
+        <div class="ctrl-group">내부 요인 — 학교가 가진 성질</div>
+
+        <div class="ctrl">
+          <label for="cap">학급당 적정 학생 수 <span class="val" id="cap-v">22명</span></label>
+          <input type="range" id="cap" min="15" max="25" step="1" value="22">
+          <p class="hint">한 반에 몇 명까지 넣을지. 학급 수와 교사 정원이 여기서 갈립니다.</p>
+        </div>
+
+        <div class="ctrl">
+          <label for="ratio">졸업생 대비 신입생 비율 <span class="val" id="ratio-v">0.90</span></label>
+          <input type="range" id="ratio" min="0.5" max="1.0" step="0.01" value="0.90">
+          <p class="hint">3학년 100명이 졸업할 때 신입생이 몇 명 들어오는지. 0.9면 90명입니다.</p>
+        </div>
+
+        <div class="ctrl-group">외부 요인 — 환경이 가하는 조건</div>
+
+        <div class="ctrl">
+          <label for="birth">부산시 연간 출생률 변화 <span class="val" id="birth-v">−3%</span></label>
+          <input type="range" id="birth" min="-10" max="5" step="0.5" value="-3">
+          <p class="hint">해마다 태어나는 아이가 몇 % 늘고 주는지. 매년 누적됩니다.</p>
+        </div>
+
+        <div class="ctrl">
+          <label for="out">타 지역으로의 인구 유출 <span class="val" id="out-v">5%</span></label>
+          <input type="range" id="out" min="0" max="20" step="0.5" value="5">
+          <p class="hint">진급할 때 다른 지역으로 전출하는 재학생 비율.</p>
+        </div>
+      </div>
+
+      <button type="button" class="reset" id="reset">처음 값으로 되돌리기</button>
+    </form>
+
+    <!-- ============ 결과 ============ -->
+    <div class="results">
+      <div class="verdict" id="verdict">
+        <span class="badge" id="badge">주의</span>
+        <p class="say" id="say"></p>
+      </div>
+
+      <div class="tiles">
+        <div class="tile">
+          <p class="k">10년 뒤 전교생 수</p>
+          <div class="v" id="m1">–</div>
+          <p class="d" id="m1d"></p>
+        </div>
+        <div class="tile">
+          <p class="k">10년 뒤 학급 수</p>
+          <div class="v" id="m2">–</div>
+          <p class="d" id="m2d"></p>
+        </div>
+        <div class="tile">
+          <p class="k">통폐합 검토선(150명) 도달</p>
+          <div class="v" id="m3">–</div>
+          <p class="d" id="m3d"></p>
+        </div>
+      </div>
+
+      <div class="chartbox">
+        <div class="chart-head">
+          <h3>전교생 수 변화 (2026 → 2036)</h3>
+          <span class="legend"><i></i>점선은 학급 감축·통폐합·폐교 검토 기준선</span>
+        </div>
+        <svg id="chart" viewBox="0 0 720 330" role="img" aria-label="연도별 전교생 수 변화 그래프"></svg>
+        <div class="tip" id="tip"></div>
+      </div>
+
+      <div class="tablebox">
+        <h3>연도별 상세</h3>
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr><th>연도</th><th>1학년</th><th>2학년</th><th>3학년</th><th>전교생</th><th>학급 수</th><th>교사 정원</th><th>상태</th></tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 발문 ============ -->
+  <section class="asks">
+    <h2>생각해 볼 것</h2>
+    <p class="lead">숫자를 맞히는 것이 목적이 아닙니다. 값을 움직여 보고 아래 네 가지에 답해 보세요.</p>
+    <ol>
+      <li><span class="tag">관찰</span><p>출생률 변화를 −10%로 내리면 전교생 수가 처음으로 150명 아래로 내려가는 해는 언제인가요?</p></li>
+      <li><span class="tag">비교</span><p>신입생 비율을 0.1 올리는 것과 인구 유출을 5%p 줄이는 것 중, 어느 쪽이 10년 뒤 학생 수를 더 많이 늘리나요?</p></li>
+      <li><span class="tag">설명</span><p>학급당 학생 수를 25명으로 올리면 학급 수가 줄어듭니다. 학생은 그대로인데 왜 교사 정원이 줄어드나요?</p></li>
+      <li class="judge"><span class="tag">판단</span><p>학급당 학생 수를 늘리면 학교는 더 오래 버팁니다. 그렇다면 학교를 남기기 위해 한 반 인원을 늘리는 것은 옳은 선택일까요?</p></li>
+    </ol>
+    <footer>
+      <b>이 모델이 무시하는 것</b> — 학생 개인의 성적·성격, 학교 건물 노후도, 통학 경로, 방과후 수업 종류.
+      그래서 “교육의 질이 좋아지면 학생이 남을까?” 같은 질문에는 이 시뮬레이터가 답할 수 없습니다.<br>
+      <b>기준선</b> — 안정 300명 이상 / 학급 감축 검토 150명 이상 / 통폐합 검토 60명 이상 / 폐교 검토 60명 미만.
+      수업용으로 단순화한 값이며 실제 기준은 지역·학교급마다 다릅니다. 교사 정원은 학급당 2명으로 어림잡았습니다.
+    </footer>
+  </section>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var START = [200,200,200], YEARS = 10, BASE_YEAR = 2026;
+  var T_OK = 300, T_WARN = 150, T_MERGE = 60;
+
+  var el = function(id){ return document.getElementById(id); };
+  var ids = ["cap","ratio","birth","out"];
+  var DEFAULTS = {cap:22, ratio:0.9, birth:-3, out:5};
+
+  /* ---------- ⑤ 알고리즘 ---------- */
+  function simulate(p){
+    var g = [START[0],START[1],START[2]];
+    var rows = [];
+    function pack(year){
+      var total = g[0]+g[1]+g[2];
+      var cls = 0, i;
+      for(i=0;i<3;i++){ if(g[i] > 0) cls += Math.max(1, Math.ceil(g[i]/p.cap)); }
+      return {year:year, g1:g[0], g2:g[1], g3:g[2], total:total, cls:cls, teachers:cls*2};
+    }
+    rows.push(pack(BASE_YEAR));
+    for(var t=1;t<=YEARS;t++){
+      var grads = g[2];                                   // 1. 3학년이 졸업해 나간다
+      var freshmen = grads * p.ratio * (1 + p.birth/100);  // 2. 신입생 = 졸업생 × 비율 × 출생률 변화
+      var keep = 1 - p.out/100;                            // 3. 진급하며 일부가 전출한다
+      g[2] = Math.round(g[1] * keep);
+      g[1] = Math.round(g[0] * keep);
+      g[0] = Math.max(0, Math.round(freshmen));
+      rows.push(pack(BASE_YEAR + t));                      // 4. 전교생·학급 수·상태를 기록한다
+    }
+    return rows;
+  }
+
+  function statusOf(n){
+    if(n >= T_OK)    return {k:"안정",      c:"var(--good)"};
+    if(n >= T_WARN)  return {k:"학급 감축", c:"var(--warn)"};
+    if(n >= T_MERGE) return {k:"통폐합 검토", c:"var(--crit)"};
+    return {k:"폐교 검토", c:"var(--crit)"};
+  }
+
+  /* ---------- 화면 그리기 ---------- */
+  var W=720, H=330, PL=54, PR=26, PT=18, PB=44;
+  var IW = W-PL-PR, IH = H-PT-PB;
+  var current = [];
+
+  function niceMax(v){
+    var step = v > 800 ? 200 : v > 400 ? 100 : 50;
+    return Math.max(step*2, Math.ceil(v/step)*step);
+  }
+
+  function draw(rows){
+    var peak = 0, i;
+    for(i=0;i<rows.length;i++){ if(rows[i].total > peak) peak = rows[i].total; }
+    var ymax = niceMax(Math.max(peak, T_OK+50));
+    var X = function(i){ return PL + IW * (i/(rows.length-1)); };
+    var Y = function(v){ return PT + IH * (1 - v/ymax); };
+
+    var s = [];
+    /* y축 눈금 */
+    var ticks = 4, k;
+    for(k=0;k<=ticks;k++){
+      var v = ymax*k/ticks, y = Y(v);
+      s.push('<line x1="'+PL+'" y1="'+y.toFixed(1)+'" x2="'+(W-PR)+'" y2="'+y.toFixed(1)+
+             '" stroke="var(--line-soft)" stroke-width="1"/>');
+      s.push('<text x="'+(PL-10)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end" fill="var(--ink-3)" '+
+             'font-size="11" font-family="IBM Plex Mono, monospace">'+Math.round(v)+'</text>');
+    }
+    /* 기준선 */
+    [[T_OK,"안정 300"],[T_WARN,"감축 150"],[T_MERGE,"통폐합 60"]].forEach(function(t){
+      if(t[0] > ymax) return;
+      var y = Y(t[0]);
+      s.push('<line x1="'+PL+'" y1="'+y.toFixed(1)+'" x2="'+(W-PR)+'" y2="'+y.toFixed(1)+
+             '" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="4 4" opacity=".55"/>');
+      s.push('<text x="'+(W-PR)+'" y="'+(y-6).toFixed(1)+'" text-anchor="end" fill="var(--ink-3)" '+
+             'font-size="10.5" font-family="IBM Plex Sans KR, sans-serif">'+t[1]+'</text>');
+    });
+    /* x축 */
+    for(i=0;i<rows.length;i++){
+      if(i%2 !== 0 && i !== rows.length-1) continue;
+      s.push('<text x="'+X(i).toFixed(1)+'" y="'+(H-PB+20)+'" text-anchor="middle" fill="var(--ink-3)" '+
+             'font-size="11" font-family="IBM Plex Mono, monospace">'+rows[i].year+'</text>');
+    }
+    /* 면 + 선 */
+    var line = "", area = "";
+    for(i=0;i<rows.length;i++){
+      line += (i?"L":"M") + X(i).toFixed(1) + " " + Y(rows[i].total).toFixed(1) + " ";
+    }
+    area = line + "L" + X(rows.length-1).toFixed(1) + " " + Y(0).toFixed(1) +
+           " L" + X(0).toFixed(1) + " " + Y(0).toFixed(1) + " Z";
+    s.push('<path d="'+area+'" fill="var(--accent-fill)" stroke="none"/>');
+    s.push('<path d="'+line+'" fill="none" stroke="var(--accent)" stroke-width="2" '+
+           'stroke-linejoin="round" stroke-linecap="round"/>');
+    /* 점 */
+    for(i=0;i<rows.length;i++){
+      var last = (i === rows.length-1);
+      s.push('<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(rows[i].total).toFixed(1)+'" r="'+(last?5:3.2)+
+             '" fill="'+(last?"var(--accent)":"var(--surface)")+'" stroke="var(--accent)" stroke-width="2"/>');
+    }
+    /* 끝점 라벨 */
+    var lastRow = rows[rows.length-1];
+    s.push('<text x="'+(X(rows.length-1)-8).toFixed(1)+'" y="'+(Y(lastRow.total)-14).toFixed(1)+
+           '" text-anchor="end" fill="var(--ink)" font-size="13" font-weight="600" '+
+           'font-family="IBM Plex Mono, monospace">'+lastRow.total+'명</text>');
+    /* 크로스헤어 + 히트 영역 */
+    s.push('<line id="cross" x1="0" y1="'+PT+'" x2="0" y2="'+(PT+IH)+'" stroke="var(--accent)" '+
+           'stroke-width="1" opacity="0"/>');
+    s.push('<rect id="hit" x="'+PL+'" y="'+PT+'" width="'+IW+'" height="'+IH+'" fill="transparent"/>');
+
+    el("chart").innerHTML = s.join("");
+    wireHover(rows, X, Y);
+  }
+
+  function wireHover(rows, X, Y){
+    var svg = el("chart"), hit = document.getElementById("hit"),
+        cross = document.getElementById("cross"), tip = el("tip");
+    function move(ev){
+      var box = svg.getBoundingClientRect();
+      var px = (ev.clientX - box.left) / box.width * W;
+      var i = Math.round((px - PL) / (IW/(rows.length-1)));
+      i = Math.max(0, Math.min(rows.length-1, i));
+      var r = rows[i], st = statusOf(r.total);
+      cross.setAttribute("x1", X(i)); cross.setAttribute("x2", X(i));
+      cross.setAttribute("opacity", ".5");
+      tip.innerHTML = r.year + "년 · <b>" + r.total + "명</b><br>" + r.cls + "학급 · " + st.k;
+      tip.style.opacity = 1;
+      var left = box.left + X(i)/W*box.width - svg.parentNode.getBoundingClientRect().left;
+      var top  = box.top  + Y(r.total)/H*box.height - svg.parentNode.getBoundingClientRect().top;
+      tip.style.left = Math.min(Math.max(left - tip.offsetWidth/2, 4),
+                                svg.parentNode.clientWidth - tip.offsetWidth - 4) + "px";
+      tip.style.top = (top - tip.offsetHeight - 12) + "px";
+    }
+    hit.addEventListener("mousemove", move);
+    hit.addEventListener("touchmove", function(e){ if(e.touches[0]) move(e.touches[0]); }, {passive:true});
+    hit.addEventListener("mouseleave", function(){ tip.style.opacity = 0; cross.setAttribute("opacity",0); });
+  }
+
+  function fillTable(rows){
+    var h = "";
+    rows.forEach(function(r){
+      var st = statusOf(r.total);
+      h += "<tr><td>" + r.year + "</td><td>" + r.g1 + "</td><td>" + r.g2 + "</td><td>" + r.g3 +
+           "</td><td>" + r.total + "</td><td>" + r.cls + "</td><td>" + r.teachers +
+           '</td><td class="st" style="color:' + st.c + '">' + st.k + "</td></tr>";
+    });
+    el("tbody").innerHTML = h;
+  }
+
+  function render(){
+    var p = {
+      cap:   +el("cap").value,
+      ratio: +el("ratio").value,
+      birth: +el("birth").value,
+      out:   +el("out").value
+    };
+    el("cap-v").textContent   = p.cap + "명";
+    el("ratio-v").textContent = p.ratio.toFixed(2);
+    el("birth-v").textContent = (p.birth > 0 ? "+" : p.birth < 0 ? "−" : "") + Math.abs(p.birth) + "%";
+    el("out-v").textContent   = p.out + "%";
+
+    var rows = simulate(p);
+    current = rows;
+    var first = rows[0], last = rows[rows.length-1];
+    var st = statusOf(last.total);
+
+    /* 지표 1 — 전체를 나타내는 값 */
+    el("m1").innerHTML = last.total + '<small>명</small>';
+    var diff = last.total - first.total, pct = Math.round(diff/first.total*100);
+    el("m1d").textContent = "2026년 " + first.total + "명 대비 " +
+      (diff >= 0 ? "+" : "−") + Math.abs(diff) + "명 (" + (pct >= 0 ? "+" : "") + pct + "%)";
+
+    /* 지표 2 — 전체가 감추고 있는 값 */
+    el("m2").innerHTML = last.cls + '<small>학급</small>';
+    el("m2d").textContent = "교사 정원 " + first.teachers + "명 → " + last.teachers + "명";
+
+    /* 지표 3 — 임계점 */
+    var cross = null, i;
+    for(i=0;i<rows.length;i++){ if(rows[i].total < T_WARN){ cross = rows[i]; break; } }
+    if(cross){
+      el("m3").innerHTML = cross.year + '<small>년</small>';
+      el("m3d").textContent = "지금부터 " + (cross.year - BASE_YEAR) + "년 뒤";
+    } else {
+      el("m3").innerHTML = '없음';
+      el("m3d").textContent = "10년 안에는 도달하지 않습니다";
+    }
+
+    /* 해석 문장 */
+    var badge = el("badge"), say = el("say");
+    badge.textContent = st.k;
+    badge.style.color = st.c;
+    el("verdict").style.borderLeftColor = st.c;
+
+    var msg;
+    if(last.total >= T_OK){
+      msg = "10년 뒤에도 <strong>" + last.total + "명</strong>이 남아 학교는 유지됩니다. 다만 학급 수는 " +
+            first.cls + "개에서 <strong>" + last.cls + "개</strong>로 바뀝니다.";
+    } else if(last.total >= T_WARN){
+      msg = "학교는 문을 닫지 않지만 전교생이 <strong>" + last.total +
+            "명</strong>까지 줄어, 학급이 " + first.cls + "개에서 <strong>" + last.cls +
+            "개</strong>로 감축됩니다. 교사 정원도 함께 줄어듭니다.";
+    } else if(last.total >= T_MERGE){
+      msg = "전교생이 <strong>" + last.total + "명</strong>까지 떨어져 <strong>통폐합 검토 대상</strong>이 됩니다." +
+            (cross ? " " + cross.year + "년에 이미 150명 선이 무너집니다." : "");
+    } else {
+      msg = "전교생이 <strong>" + last.total + "명</strong>만 남아 <strong>폐교를 검토해야 하는 수준</strong>입니다." +
+            (cross ? " " + cross.year + "년에 150명 선이 무너지고 그 뒤로 회복되지 않습니다." : "");
+    }
+    say.innerHTML = msg;
+
+    draw(rows);
+    fillTable(rows);
+  }
+
+  ids.forEach(function(id){ el(id).addEventListener("input", render); });
+  el("reset").addEventListener("click", function(){
+    ids.forEach(function(id){ el(id).value = DEFAULTS[id]; });
+    render();
+  });
+  window.addEventListener("resize", function(){ if(current.length) draw(current); });
+
+  render();
+})();
+</script>
