@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#12345b">
+  <meta name="description" content="부산 지역별 연령 인구를 바탕으로 향후 10년간 고등학교 학생 수 변화를 살펴보는 교육용 코호트 시뮬레이터">
+  <title>부산 학교의 10년 뒤 모습</title>
+  <style>
+    :root {
+      --navy: #12345b;
+      --blue: #176cc2;
+      --blue-soft: #eaf4ff;
+      --teal: #087f78;
+      --teal-soft: #e4f7f3;
+      --orange: #d77818;
+      --orange-soft: #fff2df;
+      --red: #bd4048;
+      --red-soft: #ffeaec;
+      --ink: #18283c;
+      --muted: #607086;
+      --line: #d7e2ed;
+      --paper: #f2f6fa;
+      --white: #ffffff;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    button, input, select { font: inherit; }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    summary:focus-visible {
+      outline: 3px solid rgba(23, 108, 194, .28);
+      outline-offset: 3px;
+    }
+
+    header {
+      color: var(--white);
+      background:
+        radial-gradient(circle at 82% -20%, rgba(25, 161, 176, .5), transparent 28rem),
+        linear-gradient(125deg, #1a4b7d, var(--navy) 62%);
+    }
+
+    .header-inner {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 22px 0 24px;
+    }
+
+    .subject {
+      margin: 0 0 4px;
+      color: #b8dcff;
+      font-size: .84rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 4vw, 2.45rem);
+      line-height: 1.24;
+      letter-spacing: -.045em;
+    }
+
+    .header-note {
+      margin: 8px 0 0;
+      color: #e1efff;
+      font-size: .92rem;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 20px auto 46px;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 26px rgba(26, 55, 88, .06);
+    }
+
+    .idea-card {
+      display: grid;
+      grid-template-columns: minmax(220px, .72fr) minmax(500px, 1.28fr);
+      gap: 22px;
+      align-items: center;
+      padding: 20px 24px;
+      border-left: 6px solid var(--teal);
+    }
+
+    .idea-card h2 {
+      margin: 0 0 5px;
+      font-size: 1.12rem;
+      letter-spacing: -.025em;
+    }
+
+    .idea-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .cohort-flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .flow-box {
+      min-height: 76px;
+      display: grid;
+      place-items: center;
+      padding: 10px;
+      border: 2px solid #bfd8ef;
+      border-radius: 14px;
+      background: var(--blue-soft);
+      text-align: center;
+    }
+
+    .flow-box strong {
+      display: block;
+      color: var(--blue);
+      font-size: 1.15rem;
+    }
+
+    .flow-box span {
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .flow-box.final {
+      border-color: #a7ddd3;
+      background: var(--teal-soft);
+    }
+
+    .flow-box.final strong { color: var(--teal); }
+
+    .arrow {
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .arrow b {
+      display: block;
+      color: var(--blue);
+      font-size: 1.35rem;
+      line-height: 1;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 310px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+      margin-top: 18px;
+    }
+
+    .controls {
+      padding: 22px;
+      position: sticky;
+      top: 14px;
+    }
+
+    .section-heading {
+      margin: 0;
+      font-size: 1.08rem;
+      letter-spacing: -.02em;
+    }
+
+    .section-help {
+      margin: 5px 0 18px;
+      color: var(--muted);
+      font-size: .86rem;
+    }
+
+    .control + .control {
+      margin-top: 19px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    label {
+      font-size: .92rem;
+      font-weight: 800;
+    }
+
+    output {
+      flex: 0 0 auto;
+      padding: 3px 9px;
+      color: var(--blue);
+      background: var(--blue-soft);
+      border-radius: 999px;
+      font-size: .86rem;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+
+    select {
+      width: 100%;
+      height: 46px;
+      padding: 0 38px 0 12px;
+      color: var(--ink);
+      background: var(--white);
+      border: 1px solid #b6c7d9;
+      border-radius: 11px;
+      cursor: pointer;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 28px;
+      margin: 0;
+      accent-color: var(--blue);
+      cursor: pointer;
+    }
+
+    .range-ends {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: .76rem;
+    }
+
+    .control-note {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .reset {
+      width: 100%;
+      min-height: 44px;
+      margin-top: 20px;
+      color: var(--white);
+      background: var(--navy);
+      border: 0;
+      border-radius: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .reset:hover { background: #1b4b7d; }
+    .results { min-width: 0; }
+
+    .status-card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 16px;
+      align-items: center;
+      padding: 19px 22px;
+      border-left: 6px solid var(--teal);
+      background: var(--teal-soft);
+    }
+
+    .status-label {
+      min-width: 120px;
+      margin: 0;
+      color: var(--teal);
+      font-size: 1.42rem;
+      font-weight: 920;
+      letter-spacing: -.04em;
+      text-align: center;
+    }
+
+    .status-message {
+      margin: 0;
+      font-size: .96rem;
+    }
+
+    .status-message strong { display: block; margin-bottom: 2px; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 15px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 750;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 3px;
+      font-size: clamp(1.25rem, 2.4vw, 1.62rem);
+      line-height: 1.2;
+      letter-spacing: -.04em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric small {
+      margin-left: 2px;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 700;
+    }
+
+    .chart-card {
+      margin-top: 12px;
+      padding: 20px;
+    }
+
+    .chart-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .chart-head h2 { margin: 0; font-size: 1.05rem; }
+
+    .chart-head p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: .82rem;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      color: var(--muted);
+      font-size: .76rem;
+    }
+
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 18px;
+      height: 3px;
+      margin-right: 6px;
+      vertical-align: 2px;
+      border-radius: 3px;
+      background: var(--blue);
+    }
+
+    .legend .risk-key::before {
+      height: 2px;
+      background: var(--red);
+    }
+
+    .chart-shell {
+      width: 100%;
+      height: 330px;
+      overflow: hidden;
+      background: #fbfdff;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+    }
+
+    #trendChart {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .why-card {
+      margin-top: 12px;
+      padding: 20px;
+    }
+
+    .why-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: stretch;
+      margin-top: 14px;
+    }
+
+    .age-card {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #fbfdff;
+      text-align: center;
+    }
+
+    .age-card span {
+      display: block;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .age-card strong {
+      display: block;
+      margin: 2px 0;
+      font-size: 1.55rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .compare-arrow {
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      font-size: 1.5rem;
+      font-weight: 900;
+    }
+
+    .plain-explanation {
+      margin: 13px 0 0;
+      padding: 13px 15px;
+      color: #314760;
+      background: var(--blue-soft);
+      border-radius: 11px;
+      font-size: .9rem;
+    }
+
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .table-card, .learn-card { padding: 22px; }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    summary {
+      padding: 13px 15px;
+      background: #f7fafc;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .82rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    th, td {
+      padding: 9px 10px;
+      border-top: 1px solid var(--line);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    th:first-child, td:first-child { text-align: left; }
+    th { color: #465b72; background: #eff5fa; }
+    tbody tr:last-child { background: var(--blue-soft); }
+
+    .learn-list {
+      display: grid;
+      gap: 11px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .learn-list li {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .number {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      color: var(--white);
+      background: var(--navy);
+      border-radius: 9px;
+      font-weight: 900;
+    }
+
+    .learn-list strong { display: block; font-size: .9rem; }
+    .learn-list p { margin: 2px 0 0; color: var(--muted); font-size: .82rem; }
+
+    .notice {
+      margin: 14px 0 0;
+      padding: 12px 14px;
+      color: #775118;
+      background: var(--orange-soft);
+      border-left: 4px solid var(--orange);
+      border-radius: 5px 11px 11px 5px;
+      font-size: .82rem;
+    }
+
+    footer {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto 28px;
+      color: var(--muted);
+      font-size: .78rem;
+      text-align: center;
+    }
+
+    @media (max-width: 920px) {
+      .idea-card { grid-template-columns: 1fr; }
+      .workspace { grid-template-columns: 1fr; }
+      .controls { position: static; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .bottom-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .header-inner, main, footer { width: min(100% - 20px, 1180px); }
+      .idea-card, .controls, .chart-card, .why-card, .table-card, .learn-card { padding: 17px; }
+      .cohort-flow { grid-template-columns: 1fr; }
+      .arrow b { transform: rotate(90deg); }
+      .status-card { grid-template-columns: 1fr; text-align: center; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .chart-head { flex-direction: column; }
+      .chart-shell { height: 300px; }
+      .why-grid { grid-template-columns: 1fr; }
+      .compare-arrow { transform: rotate(90deg); }
+    }
+
+    @media (max-width: 390px) {
+      .metrics { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <p class="subject">「소프트웨어와 생활」 Ⅳ. 모의실험하는 소프트웨어</p>
+      <h1>부산 학교의 10년 뒤 모습</h1>
+      <p class="header-note">부산의 실제 연령별 인구를 한 살씩 이동시켜 미래 학생 수를 살펴봅니다.</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="card idea-card" aria-labelledby="cohortTitle">
+      <div>
+        <h2 id="cohortTitle">코호트 모델이란?</h2>
+        <p>같은 나이의 아이들이 해마다 한 살씩 자란다고 보는 방법입니다.</p>
+      </div>
+      <div class="cohort-flow" aria-label="현재 5세가 10년 후 15세가 되어 고등학교 1학년에 입학하는 과정">
+        <div class="flow-box"><div><strong>현재 5세</strong><span>부산의 실제 인구</span></div></div>
+        <div class="arrow"><b>→</b>10년 이동</div>
+        <div class="flow-box"><div><strong>15세</strong><span>고등학교 입학 나이</span></div></div>
+        <div class="arrow"><b>→</b>입학</div>
+        <div class="flow-box final"><div><strong>고등학교 1학년</strong><span>10년 뒤 신입생</span></div></div>
+      </div>
+    </section>
+
+    <section class="workspace" aria-label="부산 학교 미래 시뮬레이터">
+      <aside class="card controls">
+        <h2 class="section-heading">1. 조건을 바꿔 보세요</h2>
+        <p class="section-help">슬라이더를 움직이면 결과가 바로 바뀝니다.</p>
+
+        <div class="control">
+          <div class="label-row"><label for="regionSelect">부산 지역</label></div>
+          <select id="regionSelect">
+            <option>부산 전체</option>
+            <option>중구</option>
+            <option>서구</option>
+            <option>동구</option>
+            <option>영도구</option>
+            <option>부산진구</option>
+            <option>동래구</option>
+            <option>남구</option>
+            <option>북구</option>
+            <option>해운대구</option>
+            <option>사하구</option>
+            <option>금정구</option>
+            <option>강서구</option>
+            <option>연제구</option>
+            <option>수영구</option>
+            <option>사상구</option>
+            <option>기장군</option>
+          </select>
+          <p class="control-note">지역마다 어린이와 청소년의 수가 다릅니다.</p>
+        </div>
+
+        <div class="control">
+          <div class="label-row">
+            <label for="startStudents">현재 전교생 수</label>
+            <output id="startStudentsValue" for="startStudents">300명</output>
+          </div>
+          <input id="startStudents" type="range" min="50" max="1000" step="10" value="300">
+          <div class="range-ends"><span>50명</span><span>1,000명</span></div>
+        </div>
+
+        <div class="control">
+          <div class="label-row">
+            <label for="classSize">학급당 적정 학생 수</label>
+            <output id="classSizeValue" for="classSize">20명</output>
+          </div>
+          <input id="classSize" type="range" min="15" max="25" step="1" value="20">
+          <div class="range-ends"><span>15명</span><span>25명</span></div>
+        </div>
+
+        <div class="control">
+          <div class="label-row">
+            <label for="outflow">해마다 추가로 전출하는 비율</label>
+            <output id="outflowValue" for="outflow">0%</output>
+          </div>
+          <input id="outflow" type="range" min="0" max="20" step="1" value="0">
+          <div class="range-ends"><span>0%</span><span>20%</span></div>
+          <p class="control-note">지역 연령 변화에 더해 적용하는 가상 조건입니다.</p>
+        </div>
+
+        <button class="reset" id="resetButton" type="button">처음 조건으로 되돌리기</button>
+      </aside>
+
+      <div class="results">
+        <section class="card status-card" id="statusCard" aria-live="polite">
+          <p class="status-label" id="statusLabel">계산 중</p>
+          <p class="status-message"><strong id="statusTitle">10년 뒤 결과를 계산하고 있습니다.</strong><span id="statusText"></span></p>
+        </section>
+
+        <section class="metrics" aria-label="주요 결과">
+          <article class="metric"><span>현재 전교생</span><strong id="metricNow">—<small>명</small></strong></article>
+          <article class="metric"><span>10년 뒤 전교생</span><strong id="metricFuture">—<small>명</small></strong></article>
+          <article class="metric"><span>현재 대비 변화</span><strong id="metricChange">—<small>%</small></strong></article>
+          <article class="metric"><span>10년 뒤 신입생</span><strong id="metricFreshmen">—<small>명</small></strong></article>
+        </section>
+
+        <section class="card chart-card">
+          <div class="chart-head">
+            <div>
+              <h2>2. 10년 동안 어떻게 변할까요?</h2>
+              <p>파란 선은 예상 전교생 수입니다.</p>
+            </div>
+            <div class="legend" aria-label="그래프 범례">
+              <span>예상 전교생</span>
+              <span class="risk-key">학년당 한 학급 기준</span>
+            </div>
+          </div>
+          <div class="chart-shell">
+            <svg id="trendChart" role="img" aria-label="향후 10년간 예상 전교생 수 변화 그래프"></svg>
+          </div>
+        </section>
+
+        <section class="card why-card">
+          <h2 class="section-heading">3. 왜 이렇게 변했을까요?</h2>
+          <p class="section-help"><strong id="whyRegion">부산 전체</strong>의 현재 두 연령을 비교하면 쉽게 알 수 있습니다.</p>
+          <div class="why-grid">
+            <article class="age-card">
+              <span>현재 고1 나이</span>
+              <strong id="age15Value">—</strong>
+              <span>현재 15세</span>
+            </article>
+            <div class="compare-arrow" aria-hidden="true">→</div>
+            <article class="age-card">
+              <span>10년 뒤 고1이 될 나이</span>
+              <strong id="age5Value">—</strong>
+              <span>현재 5세</span>
+            </article>
+          </div>
+          <p class="plain-explanation" id="plainExplanation">—</p>
+        </section>
+      </div>
+    </section>
+
+    <section class="bottom-grid">
+      <article class="card table-card">
+        <h2 class="section-heading">연도별 숫자 확인</h2>
+        <p class="section-help">그래프의 정확한 값을 표에서 확인할 수 있습니다.</p>
+        <details>
+          <summary>0년부터 10년까지 표 펼치기</summary>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>시점</th>
+                  <th>고1이 될 현재 나이</th>
+                  <th>예상 신입생</th>
+                  <th>예상 전교생</th>
+                  <th>예상 학급</th>
+                </tr>
+              </thead>
+              <tbody id="yearTableBody"></tbody>
+            </table>
+          </div>
+        </details>
+      </article>
+
+      <article class="card learn-card">
+        <h2 class="section-heading">이 모델을 읽는 방법</h2>
+        <ul class="learn-list">
+          <li><span class="number">1</span><div><strong>지역을 고릅니다.</strong><p>부산 16개 구·군의 연령 구조를 비교합니다.</p></div></li>
+          <li><span class="number">2</span><div><strong>조건을 하나씩 바꿉니다.</strong><p>어떤 조건 때문에 결과가 달라졌는지 확인합니다.</p></div></li>
+          <li><span class="number">3</span><div><strong>결과의 한계를 생각합니다.</strong><p>실제 학교 선택, 통학 거리, 정책 등은 포함하지 않았습니다.</p></div></li>
+        </ul>
+        <p class="notice"><strong>중요:</strong> ‘존폐 위험’은 수업용 가상 기준입니다. 실제 폐교 여부를 판단하는 공식 기준이 아닙니다.</p>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    첨부 파일 ‘3단원_학령인구_연수파일_구정훈.xlsx’의 부산 연령별 인구 사용 · 통계 기준일은 파일에 표기되어 있지 않음
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const DATA = {
+        "부산 전체":[15225,14162,12924,13602,14732,15454,16642,18131,20526,22653,25906,26622,26317,26839,28063,28148,25342,25043],
+        "중구":[79,36,38,40,53,35,56,63,72,107,98,135,130,123,158,156,136,147],
+        "서구":[362,328,288,337,341,376,394,449,469,545,663,682,668,665,724,776,665,705],
+        "동구":[388,337,293,326,312,324,302,332,312,411,407,420,414,426,476,443,461,428],
+        "영도구":[332,292,291,251,304,301,319,379,423,466,549,519,593,570,662,691,629,624],
+        "부산진구":[2073,1825,1618,1638,1751,1590,1681,1731,2001,2063,2424,2389,2304,2342,2535,2566,2377,2318],
+        "동래구":[1412,1263,1261,1335,1488,1578,1740,1986,2094,2351,2633,2769,2765,2711,2853,2859,2476,2459],
+        "남구":[1169,1112,994,984,1040,1159,1261,1390,1578,1784,2061,2078,2146,2171,2300,2255,2161,2067],
+        "북구":[1292,1206,998,1054,1116,1165,1234,1305,1582,1688,1954,1985,1946,1971,2107,2137,1952,2055],
+        "해운대구":[1561,1579,1484,1536,1692,1848,2108,2330,2571,2810,3276,3513,3395,3640,3689,3663,3368,3337],
+        "사하구":[1010,937,899,918,942,1105,1110,1281,1545,1685,2016,2030,2075,2195,2371,2446,2151,2228],
+        "금정구":[631,592,552,590,660,728,774,853,1031,1184,1284,1359,1454,1439,1518,1561,1495,1462],
+        "강서구":[1359,1373,1274,1506,1682,1633,1767,1789,2075,2205,2408,2410,2287,2141,2119,1947,1680,1438],
+        "연제구":[1245,1135,928,984,1015,1171,1234,1319,1406,1569,1784,1750,1714,1767,1747,1867,1584,1631],
+        "수영구":[691,643,573,632,662,724,723,792,877,952,1126,1164,1114,1202,1150,1217,1040,1121],
+        "사상구":[683,607,568,553,568,616,716,728,952,984,1158,1228,1177,1289,1411,1342,1266,1230],
+        "기장군":[938,897,865,918,1106,1101,1223,1404,1538,1849,2065,2191,2135,2187,2243,2222,1901,1793]
+      };
+
+      const DEFAULTS = {
+        region: "부산 전체",
+        startStudents: 300,
+        classSize: 20,
+        outflow: 0
+      };
+
+      const elements = {
+        region: document.getElementById("regionSelect"),
+        startStudents: document.getElementById("startStudents"),
+        startStudentsValue: document.getElementById("startStudentsValue"),
+        classSize: document.getElementById("classSize"),
+        classSizeValue: document.getElementById("classSizeValue"),
+        outflow: document.getElementById("outflow"),
+        outflowValue: document.getElementById("outflowValue"),
+        reset: document.getElementById("resetButton"),
+        statusCard: document.getElementById("statusCard"),
+        statusLabel: document.getElementById("statusLabel"),
+        statusTitle: document.getElementById("statusTitle"),
+        statusText: document.getElementById("statusText"),
+        metricNow: document.getElementById("metricNow"),
+        metricFuture: document.getElementById("metricFuture"),
+        metricChange: document.getElementById("metricChange"),
+        metricFreshmen: document.getElementById("metricFreshmen"),
+        whyRegion: document.getElementById("whyRegion"),
+        age15Value: document.getElementById("age15Value"),
+        age5Value: document.getElementById("age5Value"),
+        plainExplanation: document.getElementById("plainExplanation"),
+        chart: document.getElementById("trendChart"),
+        tableBody: document.getElementById("yearTableBody")
+      };
+
+      function round(value) {
+        return Math.max(0, Math.round(value));
+      }
+
+      function formatNumber(value) {
+        return new Intl.NumberFormat("ko-KR").format(round(value));
+      }
+
+      function sum(values) {
+        return values.reduce(function (total, value) { return total + value; }, 0);
+      }
+
+      function statusFor(total, freshmen, startStudents, classSize) {
+        if (total >= startStudents * 0.8 && freshmen >= classSize) {
+          return { key: "stable", label: "대체로 유지", title: "현재와 비슷한 규모를 유지합니다.", text: "10년 뒤에도 현재 전교생의 80% 이상이 남는 시나리오입니다." };
+        }
+        if (total >= startStudents * 0.5 && freshmen >= classSize) {
+          return { key: "shrink", label: "규모 축소", title: "학생 수는 줄지만 학교 운영은 가능합니다.", text: "10년 뒤 학생 수가 현재의 50~80% 수준으로 예상됩니다." };
+        }
+        if (total >= classSize * 3 || freshmen >= classSize * 0.5) {
+          return { key: "warning", label: "운영 부담", title: "학급을 안정적으로 구성하기 어려울 수 있습니다.", text: "학년당 한 학급을 채우기 어려워지는 교육용 시나리오입니다." };
+        }
+        return { key: "risk", label: "존폐 위험", title: "학교 존속을 함께 검토해야 하는 수준입니다.", text: "수업에서 정한 가상 기준 아래로 내려간 시나리오입니다." };
+      }
+
+      function simulate() {
+        const regionName = elements.region.value;
+        const ages = DATA[regionName];
+        const startStudents = Number(elements.startStudents.value);
+        const classSize = Number(elements.classSize.value);
+        const outflow = Number(elements.outflow.value) / 100;
+        const currentHighPopulation = sum([ages[15], ages[16], ages[17]]);
+        const schoolShare = startStudents / currentHighPopulation;
+        const rows = [];
+
+        for (let year = 0; year <= 10; year += 1) {
+          const factor = Math.pow(1 - outflow, year);
+          const freshmanAge = 15 - year;
+          const gradeAges = [freshmanAge, freshmanAge + 1, freshmanAge + 2];
+          const grades = gradeAges.map(function (age) {
+            return ages[age] * schoolShare * factor;
+          });
+          const total = sum(grades);
+          const freshmen = grades[0];
+          const classes = grades.reduce(function (count, grade) {
+            return count + (grade > 0 ? Math.ceil(grade / classSize) : 0);
+          }, 0);
+
+          rows.push({
+            year: year,
+            freshmanAge: freshmanAge,
+            freshmen: freshmen,
+            total: total,
+            classes: classes,
+            status: statusFor(total, freshmen, startStudents, classSize)
+          });
+        }
+
+        return {
+          regionName: regionName,
+          ages: ages,
+          startStudents: startStudents,
+          classSize: classSize,
+          outflow: outflow,
+          rows: rows
+        };
+      }
+
+      function setStatus(model) {
+        const finalRow = model.rows[10];
+        const themes = {
+          stable: { color: "#087f78", background: "#e4f7f3", border: "#087f78" },
+          shrink: { color: "#8e5d0b", background: "#fff2df", border: "#d77818" },
+          warning: { color: "#a4522b", background: "#ffe9df", border: "#d56843" },
+          risk: { color: "#a83039", background: "#ffeaec", border: "#bd4048" }
+        };
+        const theme = themes[finalRow.status.key];
+
+        elements.statusLabel.textContent = finalRow.status.label;
+        elements.statusLabel.style.color = theme.color;
+        elements.statusCard.style.background = theme.background;
+        elements.statusCard.style.borderLeftColor = theme.border;
+        elements.statusTitle.textContent = finalRow.status.title;
+        elements.statusText.textContent = finalRow.status.text;
+      }
+
+      function setMetrics(model) {
+        const finalRow = model.rows[10];
+        const change = (finalRow.total / model.startStudents - 1) * 100;
+        const sign = change > 0 ? "+" : change < 0 ? "−" : "";
+
+        elements.metricNow.innerHTML = formatNumber(model.startStudents) + "<small>명</small>";
+        elements.metricFuture.innerHTML = formatNumber(finalRow.total) + "<small>명</small>";
+        elements.metricChange.innerHTML = sign + Math.abs(change).toFixed(1) + "<small>%</small>";
+        elements.metricFreshmen.innerHTML = formatNumber(finalRow.freshmen) + "<small>명</small>";
+      }
+
+      function setExplanation(model) {
+        const age15 = model.ages[15];
+        const age5 = model.ages[5];
+        const ratio = age15 > 0 ? age5 / age15 * 100 : 0;
+        const difference = 100 - ratio;
+        let sentence;
+
+        elements.whyRegion.textContent = model.regionName;
+        elements.age15Value.textContent = formatNumber(age15) + "명";
+        elements.age5Value.textContent = formatNumber(age5) + "명";
+
+        if (ratio < 100) {
+          sentence = model.regionName + "의 현재 5세 인구는 현재 15세 인구의 " + ratio.toFixed(1) + "%입니다. ";
+          sentence += "따라서 10년 뒤 고1이 될 후보 집단이 현재보다 약 " + difference.toFixed(1) + "% 작습니다.";
+        } else if (ratio > 100) {
+          sentence = model.regionName + "의 현재 5세 인구는 현재 15세 인구의 " + ratio.toFixed(1) + "%입니다. ";
+          sentence += "따라서 10년 뒤 고1이 될 후보 집단이 현재보다 큽니다.";
+        } else {
+          sentence = model.regionName + "의 현재 5세와 15세 인구가 같은 규모입니다.";
+        }
+
+        if (model.outflow > 0) {
+          sentence += " 여기에 해마다 " + Math.round(model.outflow * 100) + "%의 추가 전출 조건도 적용했습니다.";
+        }
+        elements.plainExplanation.textContent = sentence;
+      }
+
+      function setLabels(model) {
+        elements.startStudentsValue.textContent = formatNumber(model.startStudents) + "명";
+        elements.classSizeValue.textContent = model.classSize + "명";
+        elements.outflowValue.textContent = Math.round(model.outflow * 100) + "%";
+      }
+
+      function drawChart(model) {
+        const svg = elements.chart;
+        const width = 760;
+        const height = 330;
+        const pad = { left: 58, right: 28, top: 28, bottom: 50 };
+        const plotWidth = width - pad.left - pad.right;
+        const plotHeight = height - pad.top - pad.bottom;
+        const values = model.rows.map(function (row) { return row.total; });
+        const riskLine = model.classSize * 3;
+        const maximum = Math.max.apply(null, [model.startStudents, riskLine].concat(values));
+        const yMax = Math.max(100, Math.ceil(maximum / 50) * 50);
+
+        function x(year) {
+          return pad.left + year / 10 * plotWidth;
+        }
+
+        function y(value) {
+          return pad.top + (1 - value / yMax) * plotHeight;
+        }
+
+        const parts = [];
+        parts.push('<title>' + model.regionName + ' 향후 10년 예상 전교생 수</title>');
+        parts.push('<desc>현재 ' + formatNumber(model.startStudents) + '명에서 10년 뒤 ' + formatNumber(values[10]) + '명으로 변합니다.</desc>');
+
+        for (let i = 0; i <= 5; i += 1) {
+          const gridY = pad.top + i / 5 * plotHeight;
+          const label = Math.round(yMax * (1 - i / 5));
+          parts.push('<line x1="' + pad.left + '" y1="' + gridY + '" x2="' + (width - pad.right) + '" y2="' + gridY + '" stroke="#dbe5ee" stroke-width="1"/>');
+          parts.push('<text x="' + (pad.left - 10) + '" y="' + (gridY + 4) + '" text-anchor="end" fill="#607086" font-size="12">' + label + '</text>');
+        }
+
+        model.rows.forEach(function (row) {
+          const pointX = x(row.year);
+          parts.push('<line x1="' + pointX + '" y1="' + pad.top + '" x2="' + pointX + '" y2="' + (pad.top + plotHeight) + '" stroke="#edf2f6" stroke-width="1"/>');
+          parts.push('<text x="' + pointX + '" y="' + (height - 23) + '" text-anchor="middle" fill="#607086" font-size="12">' + (row.year === 0 ? "현재" : row.year + "년") + '</text>');
+        });
+
+        const riskY = y(riskLine);
+        parts.push('<line x1="' + pad.left + '" y1="' + riskY + '" x2="' + (width - pad.right) + '" y2="' + riskY + '" stroke="#bd4048" stroke-width="2" stroke-dasharray="6 5"/>');
+        parts.push('<text x="' + (pad.left + 8) + '" y="' + Math.max(15, riskY - 7) + '" fill="#bd4048" font-size="12" font-weight="700">한 학급 × 3학년 = ' + riskLine + '명</text>');
+
+        let linePoints = "";
+        model.rows.forEach(function (row) {
+          linePoints += x(row.year) + "," + y(row.total) + " ";
+        });
+
+        const areaPoints = pad.left + "," + (pad.top + plotHeight) + " " + linePoints + (width - pad.right) + "," + (pad.top + plotHeight);
+        parts.push('<polygon points="' + areaPoints + '" fill="rgba(23,108,194,.12)"/>');
+        parts.push('<polyline points="' + linePoints + '" fill="none" stroke="#176cc2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>');
+
+        model.rows.forEach(function (row) {
+          parts.push('<circle cx="' + x(row.year) + '" cy="' + y(row.total) + '" r="4" fill="#fff" stroke="#176cc2" stroke-width="3"/>');
+        });
+
+        const first = model.rows[0];
+        const last = model.rows[10];
+        parts.push('<text x="' + (x(0) + 8) + '" y="' + Math.max(18, y(first.total) - 12) + '" fill="#176cc2" font-size="13" font-weight="800">' + formatNumber(first.total) + '명</text>');
+        parts.push('<text x="' + (x(10) - 8) + '" y="' + Math.max(18, y(last.total) - 12) + '" text-anchor="end" fill="#176cc2" font-size="13" font-weight="800">' + formatNumber(last.total) + '명</text>');
+
+        svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+        svg.innerHTML = parts.join("");
+      }
+
+      function fillTable(model) {
+        elements.tableBody.innerHTML = model.rows.map(function (row) {
+          return "<tr>" +
+            "<td>" + (row.year === 0 ? "현재" : row.year + "년 후") + "</td>" +
+            "<td>현재 " + row.freshmanAge + "세</td>" +
+            "<td>" + formatNumber(row.freshmen) + "명</td>" +
+            "<td><strong>" + formatNumber(row.total) + "명</strong></td>" +
+            "<td>" + row.classes + "학급</td>" +
+          "</tr>";
+        }).join("");
+      }
+
+      function update() {
+        const model = simulate();
+        setLabels(model);
+        setStatus(model);
+        setMetrics(model);
+        setExplanation(model);
+        drawChart(model);
+        fillTable(model);
+      }
+
+      [elements.region, elements.startStudents, elements.classSize, elements.outflow].forEach(function (control) {
+        control.addEventListener("input", update);
+        if (control.tagName === "SELECT") {
+          control.addEventListener("change", update);
+        }
+      });
+
+      elements.reset.addEventListener("click", function () {
+        elements.region.value = DEFAULTS.region;
+        elements.startStudents.value = String(DEFAULTS.startStudents);
+        elements.classSize.value = String(DEFAULTS.classSize);
+        elements.outflow.value = String(DEFAULTS.outflow);
+        update();
+      });
+
+      update();
+    })();
+  </script>
+</body>
+</html>
