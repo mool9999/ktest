@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0e7c86">
+  <meta name="description" content="첨부된 부산 연령별 학령인구 데이터를 활용한 고등학교 10년 미래 시뮬레이터">
+  <title>우리 학교 10년 후 — 부산 학령인구 시뮬레이터</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+  <style>
+    :root{
+      --ground:#F1F4F6;
+      --surface:#FFFFFF;
+      --surface-2:#F7F9FA;
+      --ink:#16212A;
+      --ink-2:#4B5D69;
+      --ink-3:#7E8F9B;
+      --line:#DCE3E8;
+      --line-soft:#E9EEF1;
+      --accent:#0E7C86;
+      --accent-fill:rgba(14,124,134,.13);
+      --good:#2C7A58;
+      --warn:#A96C12;
+      --crit:#B0362F;
+      --tint:rgba(14,124,134,.07);
+      --shadow:0 1px 2px rgba(22,33,42,.06),0 8px 24px rgba(22,33,42,.06);
+    }
+
+    @media (prefers-color-scheme:dark){
+      :root:not([data-theme="light"]){
+        --ground:#0F1519;
+        --surface:#171F25;
+        --surface-2:#1C252C;
+        --ink:#E7EEF2;
+        --ink-2:#A8B8C2;
+        --ink-3:#748691;
+        --line:#2A343B;
+        --line-soft:#222B31;
+        --accent:#43BAC1;
+        --accent-fill:rgba(67,186,193,.16);
+        --good:#5CBB8D;
+        --warn:#DFA646;
+        --crit:#E4837B;
+        --tint:rgba(67,186,193,.08);
+        --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+      }
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-width:320px;
+      background:var(--ground);
+      color:var(--ink);
+      font-family:"IBM Plex Sans KR",-apple-system,BlinkMacSystemFont,"Malgun Gothic","맑은 고딕",sans-serif;
+      font-size:15px;
+      line-height:1.65;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    button,input,select{font:inherit}
+    button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{
+      outline:2px solid var(--accent);
+      outline-offset:3px;
+    }
+
+    .wrap{max-width:1120px;margin:0 auto;padding:28px 20px 64px}
+
+    header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:18px}
+
+    .eyebrow{
+      font-size:12px;
+      letter-spacing:.14em;
+      color:var(--ink-3);
+      font-weight:600;
+      margin:0 0 6px;
+    }
+
+    h1{
+      font-family:"Gowun Batang","Batang",serif;
+      font-weight:700;
+      font-size:clamp(28px,4.4vw,42px);
+      line-height:1.2;
+      margin:0 0 10px;
+      letter-spacing:-.01em;
+      text-wrap:balance;
+    }
+
+    .sub{margin:0;color:var(--ink-2);max-width:72ch}
+
+    .std{
+      margin-top:14px;
+      font-size:12.5px;
+      color:var(--ink-3);
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px 14px;
+    }
+
+    .std code{
+      font-family:"IBM Plex Mono",monospace;
+      font-size:12px;
+      background:var(--tint);
+      color:var(--ink-2);
+      padding:1px 6px;
+      border-radius:3px;
+    }
+
+    .source-summary{
+      display:grid;
+      grid-template-columns:1.15fr repeat(3,1fr);
+      margin-bottom:24px;
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:10px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .source-lead,.source-stat{padding:14px 16px}
+    .source-lead{background:var(--tint)}
+    .source-lead strong{display:block;font-size:14px}
+    .source-lead span{display:block;color:var(--ink-3);font-size:11.5px;margin-top:2px}
+    .source-stat{border-left:1px solid var(--line-soft)}
+    .source-stat span{display:block;color:var(--ink-3);font-size:11.5px}
+    .source-stat strong{
+      display:block;
+      margin-top:2px;
+      font-family:"IBM Plex Mono",monospace;
+      font-size:19px;
+      font-weight:500;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .cols{display:grid;grid-template-columns:296px 1fr;gap:24px;align-items:start}
+
+    .panel{
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:20px;
+      box-shadow:var(--shadow);
+    }
+
+    .panel h2{
+      font-family:"Gowun Batang","Batang",serif;
+      font-size:17px;
+      font-weight:700;
+      margin:0 0 4px;
+    }
+
+    .panel .note{font-size:12.5px;color:var(--ink-3);margin:0 0 18px;line-height:1.5}
+    .ctrls{display:flex;flex-direction:column;gap:20px}
+
+    .ctrl-group{
+      font-size:11px;
+      letter-spacing:.12em;
+      color:var(--ink-3);
+      font-weight:600;
+      padding-top:4px;
+      border-top:1px solid var(--line-soft);
+    }
+
+    .ctrl-group:first-child{border-top:none;padding-top:0}
+
+    .ctrl label{
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      gap:10px;
+      font-size:13.5px;
+      font-weight:500;
+      margin-bottom:7px;
+    }
+
+    .ctrl .val{
+      font-family:"IBM Plex Mono",monospace;
+      font-size:14px;
+      font-weight:500;
+      color:var(--accent);
+      font-variant-numeric:tabular-nums;
+      white-space:nowrap;
+    }
+
+    .ctrl .hint{font-size:11.5px;color:var(--ink-3);margin:5px 0 0;line-height:1.45}
+
+    select{
+      width:100%;
+      min-height:40px;
+      padding:7px 10px;
+      color:var(--ink);
+      background:var(--surface-2);
+      border:1px solid var(--line);
+      border-radius:7px;
+      cursor:pointer;
+    }
+
+    input[type=range]{
+      -webkit-appearance:none;
+      appearance:none;
+      width:100%;
+      height:20px;
+      background:transparent;
+      cursor:pointer;
+      display:block;
+      margin:0;
+    }
+
+    input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:2px}
+    input[type=range]::-moz-range-track{height:4px;background:var(--line);border-radius:2px}
+
+    input[type=range]::-webkit-slider-thumb{
+      -webkit-appearance:none;
+      width:16px;
+      height:16px;
+      border-radius:50%;
+      background:var(--accent);
+      border:2px solid var(--surface);
+      margin-top:-6px;
+      box-shadow:0 0 0 1px var(--accent);
+    }
+
+    input[type=range]::-moz-range-thumb{
+      width:14px;
+      height:14px;
+      border-radius:50%;
+      background:var(--accent);
+      border:2px solid var(--surface);
+      box-shadow:0 0 0 1px var(--accent);
+    }
+
+    .model-note{
+      margin-top:20px;
+      padding:11px 12px;
+      color:var(--ink-2);
+      background:var(--tint);
+      border-left:3px solid var(--accent);
+      border-radius:4px 7px 7px 4px;
+      font-size:11.5px;
+      line-height:1.55;
+    }
+
+    .reset{
+      margin-top:16px;
+      width:100%;
+      padding:9px;
+      border-radius:7px;
+      cursor:pointer;
+      border:1px solid var(--line);
+      background:var(--surface-2);
+      color:var(--ink-2);
+      font-size:13px;
+      font-weight:500;
+    }
+
+    .reset:hover{border-color:var(--accent);color:var(--accent)}
+    .results{display:flex;flex-direction:column;gap:20px;min-width:0}
+
+    .verdict{
+      display:flex;
+      gap:16px;
+      align-items:flex-start;
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-left:4px solid var(--accent);
+      border-radius:10px;
+      padding:18px 20px;
+      box-shadow:var(--shadow);
+    }
+
+    .verdict .badge{
+      flex:none;
+      font-size:12px;
+      font-weight:600;
+      letter-spacing:.06em;
+      padding:5px 11px;
+      border-radius:100px;
+      white-space:nowrap;
+      border:1px solid currentColor;
+    }
+
+    .verdict .say{margin:0;font-size:14.5px;color:var(--ink-2);line-height:1.6}
+    .verdict .say strong{color:var(--ink);font-weight:600}
+
+    .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+
+    .tile{
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:16px 18px;
+      box-shadow:var(--shadow);
+    }
+
+    .tile .k{font-size:12px;color:var(--ink-3);font-weight:500;margin:0 0 6px;line-height:1.4}
+
+    .tile .v{
+      font-family:"IBM Plex Mono",monospace;
+      font-size:30px;
+      font-weight:500;
+      line-height:1.1;
+      font-variant-numeric:tabular-nums;
+      letter-spacing:-.02em;
+    }
+
+    .tile .v small{
+      font-size:14px;
+      font-family:"IBM Plex Sans KR",sans-serif;
+      font-weight:400;
+      color:var(--ink-3);
+      margin-left:3px;
+    }
+
+    .tile .d{font-size:11.5px;color:var(--ink-3);margin-top:5px}
+
+    .chartbox{
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:18px 18px 12px;
+      box-shadow:var(--shadow);
+      position:relative;
+    }
+
+    .chart-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+
+    .chart-head h3{
+      font-family:"Gowun Batang","Batang",serif;
+      font-size:16px;
+      font-weight:700;
+      margin:0;
+    }
+
+    .chart-head .legend{font-size:11.5px;color:var(--ink-3)}
+
+    .chart-head .legend i{
+      display:inline-block;
+      width:10px;
+      height:0;
+      border-top:2px dashed var(--crit);
+      vertical-align:middle;
+      margin-right:5px;
+    }
+
+    svg{display:block;width:100%;height:auto;overflow:visible}
+
+    .tip{
+      position:absolute;
+      pointer-events:none;
+      opacity:0;
+      transition:opacity .1s;
+      background:var(--ink);
+      color:var(--ground);
+      border-radius:6px;
+      padding:7px 10px;
+      font-size:12px;
+      line-height:1.45;
+      white-space:nowrap;
+      z-index:5;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .tip b{font-family:"IBM Plex Mono",monospace;font-weight:500}
+
+    .reasonbox{
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
+      gap:12px;
+      align-items:center;
+      padding:16px 18px;
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:10px;
+      box-shadow:var(--shadow);
+    }
+
+    .age-stat{text-align:center}
+    .age-stat span{display:block;color:var(--ink-3);font-size:11.5px}
+    .age-stat strong{
+      display:block;
+      margin:2px 0;
+      font-family:"IBM Plex Mono",monospace;
+      font-size:23px;
+      font-weight:500;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .reason-arrow{color:var(--accent);font-size:22px;font-weight:600}
+    .reason-text{grid-column:1/-1;margin:0;padding-top:11px;border-top:1px solid var(--line-soft);color:var(--ink-2);font-size:13px}
+
+    .tablebox{
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:10px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .tablebox h3{
+      font-family:"Gowun Batang","Batang",serif;
+      font-size:16px;
+      font-weight:700;
+      margin:0;
+      padding:16px 18px 12px;
+    }
+
+    .scroll{overflow-x:auto}
+    table{border-collapse:collapse;width:100%;min-width:650px;font-size:13px}
+
+    th,td{
+      padding:8px 12px;
+      text-align:right;
+      white-space:nowrap;
+      border-top:1px solid var(--line-soft);
+    }
+
+    th:first-child,td:first-child{text-align:left}
+
+    thead th{
+      font-size:11.5px;
+      letter-spacing:.04em;
+      color:var(--ink-3);
+      font-weight:600;
+      background:var(--surface-2);
+      border-top:none;
+      position:sticky;
+      top:0;
+    }
+
+    tbody td{
+      font-family:"IBM Plex Mono",monospace;
+      font-variant-numeric:tabular-nums;
+      color:var(--ink-2);
+    }
+
+    tbody td:first-child{font-family:"IBM Plex Sans KR",sans-serif;color:var(--ink)}
+    tbody tr:last-child td{color:var(--ink);font-weight:500;background:var(--tint)}
+    .st{font-family:"IBM Plex Sans KR",sans-serif!important;font-size:12px}
+
+    .asks{margin-top:36px;border-top:1px solid var(--line);padding-top:26px}
+    .asks h2{font-family:"Gowun Batang","Batang",serif;font-size:20px;margin:0 0 4px}
+    .asks p.lead{color:var(--ink-2);margin:0 0 20px;font-size:14px;max-width:64ch}
+    .asks ol{list-style:none;padding:0;margin:0;display:grid;gap:12px;grid-template-columns:repeat(2,1fr)}
+
+    .asks li{
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:15px 18px;
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+    }
+
+    .asks li .tag{
+      flex:none;
+      font-size:11px;
+      font-weight:600;
+      letter-spacing:.08em;
+      color:var(--accent);
+      background:var(--tint);
+      border-radius:4px;
+      padding:3px 8px;
+      margin-top:2px;
+    }
+
+    .asks li p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.6}
+    .asks li.judge{border-color:var(--accent)}
+    .asks li.judge .tag{background:var(--accent);color:var(--surface)}
+
+    footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3);line-height:1.7}
+    footer b{color:var(--ink-2);font-weight:600}
+
+    @media (max-width:860px){
+      .source-summary{grid-template-columns:1fr 1fr 1fr}
+      .source-lead{grid-column:1/-1}
+      .source-stat:nth-child(2){border-left:none}
+      .cols{grid-template-columns:1fr}
+    }
+
+    @media (max-width:620px){
+      .wrap{padding:20px 12px 44px}
+      .source-summary{grid-template-columns:1fr}
+      .source-stat{border-left:none;border-top:1px solid var(--line-soft)}
+      .tiles{grid-template-columns:1fr}
+      .verdict{flex-direction:column}
+      .asks ol{grid-template-columns:1fr}
+      .reasonbox{grid-template-columns:1fr}
+      .reason-arrow{transform:rotate(90deg);text-align:center}
+      .reason-text{grid-column:auto}
+    }
+
+    @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p class="eyebrow">「소프트웨어와 생활」 Ⅳ. 모의실험하는 소프트웨어</p>
+      <h1>우리 학교 10년 후</h1>
+      <p class="sub">부산의 실제 연령별 인구가 해마다 한 살씩 이동한다고 보고, 현재 5~17세가 앞으로 고등학생이 될 때 우리 학교 규모가 어떻게 달라지는지 살펴봅니다.</p>
+      <p class="std">
+        <span><code>12소생04-03</code> 복잡한 문제나 현상의 원리를 시뮬레이션 모델로 표현한다</span>
+        <span><code>12소생04-04</code> 소프트웨어를 적극적으로 활용하여 시뮬레이션 모델을 구현한다</span>
+      </p>
+    </header>
+
+    <section class="source-summary" aria-label="첨부 파일의 부산 데이터 요약">
+      <div class="source-lead">
+        <strong>첨부 엑셀 데이터 적용</strong>
+        <span>부산 전체와 16개 구·군의 연령별 인구</span>
+      </div>
+      <div class="source-stat"><span>부산 고등 학령인구</span><strong>78,533명</strong></div>
+      <div class="source-stat"><span>부산 고등학교 수</span><strong>188개</strong></div>
+      <div class="source-stat"><span>학교당 단순 평균</span><strong>약 418명</strong></div>
+    </section>
+
+    <div class="cols">
+      <form class="panel" id="ctrls" autocomplete="off">
+        <h2>조건 바꾸기</h2>
+        <p class="note">값을 한 번에 하나씩 바꾸어 결과의 원인을 찾아보세요.</p>
+
+        <div class="ctrls">
+          <div class="ctrl-group">지역과 현재 학교</div>
+
+          <div class="ctrl">
+            <label for="region">부산 지역 <span class="val" id="region-index">지수 54.9</span></label>
+            <select id="region">
+              <option>부산 전체</option>
+              <option>중구</option>
+              <option>서구</option>
+              <option>동구</option>
+              <option>영도구</option>
+              <option>부산진구</option>
+              <option>동래구</option>
+              <option>남구</option>
+              <option>북구</option>
+              <option>해운대구</option>
+              <option>사하구</option>
+              <option>금정구</option>
+              <option>강서구</option>
+              <option>연제구</option>
+              <option>수영구</option>
+              <option>사상구</option>
+              <option>기장군</option>
+            </select>
+            <p class="hint" id="region-hint">현재 5세 인구 ÷ 15세 인구를 코호트 지수로 표시합니다.</p>
+          </div>
+
+          <div class="ctrl">
+            <label for="start">현재 전교생 수 <span class="val" id="start-v">420명</span></label>
+            <input type="range" id="start" min="60" max="1200" step="10" value="420">
+            <p class="hint">현재 1~3학년은 선택 지역의 15~17세 비율로 나눕니다.</p>
+          </div>
+
+          <div class="ctrl-group">학교와 환경 조건</div>
+
+          <div class="ctrl">
+            <label for="cap">학급당 적정 학생 수 <span class="val" id="cap-v">20명</span></label>
+            <input type="range" id="cap" min="15" max="25" step="1" value="20">
+            <p class="hint">학생 수는 바뀌지 않고 예상 학급 수와 위험 기준만 달라집니다.</p>
+          </div>
+
+          <div class="ctrl">
+            <label for="out">해마다 추가 인구 유출 <span class="val" id="out-v">0%</span></label>
+            <input type="range" id="out" min="0" max="20" step="1" value="0">
+            <p class="hint">연령별 인구 감소에 더해 적용하는 가상 전출 조건입니다.</p>
+          </div>
+        </div>
+
+        <p class="model-note"><strong>왜 출생률 항목이 없을까요?</strong><br>10년 안에 고등학생이 될 아이들은 이미 현재 5~17세입니다. 그래서 출생률을 임의로 반복하지 않고 엑셀의 실제 연령별 인구를 사용합니다.</p>
+        <button type="button" class="reset" id="reset">처음 값으로 되돌리기</button>
+      </form>
+
+      <div class="results">
+        <div class="verdict" id="verdict" aria-live="polite">
+          <span class="badge" id="badge">계산 중</span>
+          <p class="say" id="say"></p>
+        </div>
+
+        <div class="tiles">
+          <div class="tile">
+            <p class="k">10년 뒤 전교생 수</p>
+            <div class="v" id="m1">–</div>
+            <p class="d" id="m1d"></p>
+          </div>
+          <div class="tile">
+            <p class="k">10년 뒤 신입생과 학급</p>
+            <div class="v" id="m2">–</div>
+            <p class="d" id="m2d"></p>
+          </div>
+          <div class="tile">
+            <p class="k">존폐 위험 단계 진입</p>
+            <div class="v" id="m3">–</div>
+            <p class="d" id="m3d"></p>
+          </div>
+        </div>
+
+        <div class="chartbox">
+          <div class="chart-head">
+            <h3>전교생 수 변화 (현재 → 10년 후)</h3>
+            <span class="legend"><i></i>점선은 학년당 한 학급 기준</span>
+          </div>
+          <svg id="chart" viewBox="0 0 720 330" role="img" aria-label="연도별 예상 전교생 수 변화 그래프"></svg>
+          <div class="tip" id="tip"></div>
+        </div>
+
+        <div class="reasonbox" aria-label="연령 인구 비교">
+          <div class="age-stat">
+            <span>현재 고1 나이 · 15세</span>
+            <strong id="age15">–</strong>
+            <span id="age15-note">지역 인구</span>
+          </div>
+          <div class="reason-arrow" aria-hidden="true">→</div>
+          <div class="age-stat">
+            <span>10년 뒤 고1 나이 · 현재 5세</span>
+            <strong id="age5">–</strong>
+            <span id="age5-note">지역 인구</span>
+          </div>
+          <p class="reason-text" id="reason-text"></p>
+        </div>
+
+        <div class="tablebox">
+          <h3>연도별 상세</h3>
+          <div class="scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>시점</th>
+                  <th>고1이 될 현재 나이</th>
+                  <th>1학년</th>
+                  <th>2학년</th>
+                  <th>3학년</th>
+                  <th>전교생</th>
+                  <th>학급 수</th>
+                  <th>교사 수*</th>
+                  <th>상태</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="asks">
+      <h2>생각해 볼 것</h2>
+      <p class="lead">숫자를 맞히는 것이 목적이 아닙니다. 지역과 조건을 바꾸고 그 이유를 설명해 보세요.</p>
+      <ol>
+        <li><span class="tag">관찰</span><p>부산 전체에서 현재 5세 인구는 15세 인구의 몇 %인가요? 이 값은 10년 뒤 신입생과 어떤 관계가 있나요?</p></li>
+        <li><span class="tag">비교</span><p>강서구와 중구를 선택했을 때 결과는 어떻게 다른가요? 두 지역의 코호트 지수를 근거로 설명해 보세요.</p></li>
+        <li><span class="tag">설명</span><p>학급당 학생 수를 바꾸면 전교생 수는 그대로인데 학급 수와 상태가 달라지는 이유는 무엇인가요?</p></li>
+        <li class="judge"><span class="tag">판단</span><p>이 결과만으로 학교 통폐합을 결정할 수 있을까요? 모델에서 버린 현실 요소를 세 가지 찾아보세요.</p></li>
+      </ol>
+    </section>
+
+    <footer>
+      <b>자료</b> — 첨부 파일 ‘3단원_학령인구_연수파일_구정훈(1).xlsx’의 부산 전체·16개 구·군 0~17세 인구와 학교 수를 사용했습니다. 파일에 통계 기준일은 표기되어 있지 않습니다.<br>
+      <b>모형</b> — 현재 학교가 선택 지역의 고등 학령인구에서 차지하는 비율이 앞으로도 같다고 가정합니다. 추가 유출은 매년 누적합니다.<br>
+      <b>한계</b> — 실제 학교별 학생 수, 학교 선택, 구·군 간 통학, 주택 개발, 교육 정책은 반영하지 않았습니다. ‘존폐 위험’은 학년당 한 학급 구성이 어려운 상황을 나타내는 수업용 기준이며 공식 통폐합 기준이 아닙니다. *교사 수는 학급 수×2로 단순 추정합니다.
+    </footer>
+  </div>
+
+  <script>
+    (function(){
+      "use strict";
+
+      var DATA = {
+        "부산 전체":{ages:[15225,14162,12924,13602,14732,15454,16642,18131,20526,22653,25906,26622,26317,26839,28063,28148,25342,25043],elementary:130480,middle:81219,high:78533},
+        "중구":{ages:[79,36,38,40,53,35,56,63,72,107,98,135,130,123,158,156,136,147],elementary:531,middle:411,high:439},
+        "서구":{ages:[362,328,288,337,341,376,394,449,469,545,663,682,668,665,724,776,665,705],elementary:3202,middle:2057,high:2146},
+        "동구":{ages:[388,337,293,326,312,324,302,332,312,411,407,420,414,426,476,443,461,428],elementary:2184,middle:1316,high:1332},
+        "영도구":{ages:[332,292,291,251,304,301,319,379,423,466,549,519,593,570,662,691,629,624],elementary:2655,middle:1825,high:1944},
+        "부산진구":{ages:[2073,1825,1618,1638,1751,1590,1681,1731,2001,2063,2424,2389,2304,2342,2535,2566,2377,2318],elementary:12289,middle:7181,high:7261},
+        "동래구":{ages:[1412,1263,1261,1335,1488,1578,1740,1986,2094,2351,2633,2769,2765,2711,2853,2859,2476,2459],elementary:13573,middle:8329,high:7794},
+        "남구":{ages:[1169,1112,994,984,1040,1159,1261,1390,1578,1784,2061,2078,2146,2171,2300,2255,2161,2067],elementary:10152,middle:6617,high:6483},
+        "북구":{ages:[1292,1206,998,1054,1116,1165,1234,1305,1582,1688,1954,1985,1946,1971,2107,2137,1952,2055],elementary:9748,middle:6024,high:6144},
+        "해운대구":{ages:[1561,1579,1484,1536,1692,1848,2108,2330,2571,2810,3276,3513,3395,3640,3689,3663,3368,3337],elementary:16608,middle:10724,high:10368},
+        "사하구":{ages:[1010,937,899,918,942,1105,1110,1281,1545,1685,2016,2030,2075,2195,2371,2446,2151,2228],elementary:9667,middle:6641,high:6825},
+        "금정구":{ages:[631,592,552,590,660,728,774,853,1031,1184,1284,1359,1454,1439,1518,1561,1495,1462],elementary:6485,middle:4411,high:4518},
+        "강서구":{ages:[1359,1373,1274,1506,1682,1633,1767,1789,2075,2205,2408,2410,2287,2141,2119,1947,1680,1438],elementary:12654,middle:6547,high:5065},
+        "연제구":{ages:[1245,1135,928,984,1015,1171,1234,1319,1406,1569,1784,1750,1714,1767,1747,1867,1584,1631],elementary:9062,middle:5228,high:5082},
+        "수영구":{ages:[691,643,573,632,662,724,723,792,877,952,1126,1164,1114,1202,1150,1217,1040,1121],elementary:5634,middle:3466,high:3378},
+        "사상구":{ages:[683,607,568,553,568,616,716,728,952,984,1158,1228,1177,1289,1411,1342,1266,1230],elementary:5766,middle:3877,high:3838},
+        "기장군":{ages:[938,897,865,918,1106,1101,1223,1404,1538,1849,2065,2191,2135,2187,2243,2222,1901,1793],elementary:10270,middle:6565,high:5916}
+      };
+
+      var YEARS = 10;
+      var DEFAULTS = {region:"부산 전체",start:420,cap:20,out:0};
+      var el = function(id){return document.getElementById(id);};
+      var controlIds = ["region","start","cap","out"];
+      var currentRows = [];
+
+      function formatNumber(value){
+        return Math.round(value).toLocaleString("ko-KR");
+      }
+
+      function sum(values){
+        return values.reduce(function(total,value){return total+value;},0);
+      }
+
+      function balancedRound(values){
+        var floors = values.map(function(value){return Math.floor(value);});
+        var target = Math.round(sum(values));
+        var remainder = target-sum(floors);
+        var order = values.map(function(value,index){
+          return {index:index,fraction:value-Math.floor(value)};
+        }).sort(function(a,b){return b.fraction-a.fraction;});
+        for(var i=0;i<remainder;i++){floors[order[i].index]+=1;}
+        return floors;
+      }
+
+      function statusOf(row,start,cap){
+        if(row.total>=start*.8 && row.g1>=cap){
+          return {key:"stable",label:"대체로 유지",color:"var(--good)"};
+        }
+        if(row.total>=start*.5 && row.g1>=cap){
+          return {key:"shrink",label:"규모 축소",color:"var(--warn)"};
+        }
+        if(row.total>=cap*3 || row.g1>=cap*.5){
+          return {key:"burden",label:"운영 부담",color:"var(--crit)"};
+        }
+        return {key:"risk",label:"존폐 위험",color:"var(--crit)"};
+      }
+
+      function simulate(params){
+        var region = DATA[params.region];
+        var ages = region.ages;
+        var currentHigh = ages[15]+ages[16]+ages[17];
+        var schoolShare = params.start/currentHigh;
+        var rows = [];
+
+        for(var year=0;year<=YEARS;year++){
+          var firstAge = 15-year;
+          var factor = Math.pow(1-params.out/100,year);
+          var rawGrades = [
+            ages[firstAge]*schoolShare*factor,
+            ages[firstAge+1]*schoolShare*factor,
+            ages[firstAge+2]*schoolShare*factor
+          ];
+          var grades = balancedRound(rawGrades);
+          var total = sum(grades);
+          var classes = grades.reduce(function(count,grade){
+            return count+(grade>0?Math.ceil(grade/params.cap):0);
+          },0);
+          var row = {
+            year:year,
+            sourceAge:firstAge,
+            g1:grades[0],
+            g2:grades[1],
+            g3:grades[2],
+            total:total,
+            classes:classes,
+            teachers:classes*2
+          };
+          row.status=statusOf(row,params.start,params.cap);
+          rows.push(row);
+        }
+        return rows;
+      }
+
+      function niceMax(value){
+        var step=value>800?200:value>400?100:50;
+        return Math.max(step*2,Math.ceil(value/step)*step);
+      }
+
+      function draw(rows,params){
+        var W=720,H=330,PL=54,PR=26,PT=18,PB=44;
+        var IW=W-PL-PR,IH=H-PT-PB;
+        var threshold=params.cap*3;
+        var peak=Math.max.apply(null,rows.map(function(row){return row.total;}));
+        var ymax=niceMax(Math.max(peak,threshold+30));
+        var X=function(index){return PL+IW*(index/(rows.length-1));};
+        var Y=function(value){return PT+IH*(1-value/ymax);};
+        var parts=[];
+
+        parts.push("<title>"+params.region+" 향후 10년 예상 전교생 수</title>");
+        parts.push("<desc>현재 "+params.start+"명에서 10년 뒤 "+rows[10].total+"명으로 변합니다.</desc>");
+
+        for(var tick=0;tick<=4;tick++){
+          var value=ymax*tick/4;
+          var y=Y(value);
+          parts.push('<line x1="'+PL+'" y1="'+y.toFixed(1)+'" x2="'+(W-PR)+'" y2="'+y.toFixed(1)+'" stroke="var(--line-soft)" stroke-width="1"/>');
+          parts.push('<text x="'+(PL-10)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end" fill="var(--ink-3)" font-size="11" font-family="IBM Plex Mono, monospace">'+Math.round(value)+'</text>');
+        }
+
+        var thresholdY=Y(threshold);
+        parts.push('<line x1="'+PL+'" y1="'+thresholdY.toFixed(1)+'" x2="'+(W-PR)+'" y2="'+thresholdY.toFixed(1)+'" stroke="var(--crit)" stroke-width="1.5" stroke-dasharray="5 5" opacity=".75"/>');
+        parts.push('<text x="'+(W-PR)+'" y="'+(thresholdY-6).toFixed(1)+'" text-anchor="end" fill="var(--crit)" font-size="10.5" font-family="IBM Plex Sans KR, sans-serif">한 학급×3학년 '+threshold+'명</text>');
+
+        rows.forEach(function(row,index){
+          if(index%2!==0 && index!==rows.length-1){return;}
+          parts.push('<text x="'+X(index).toFixed(1)+'" y="'+(H-PB+20)+'" text-anchor="middle" fill="var(--ink-3)" font-size="11" font-family="IBM Plex Mono, monospace">'+(index===0?"현재":index+"년")+'</text>');
+        });
+
+        var line="";
+        rows.forEach(function(row,index){
+          line+=(index?"L":"M")+X(index).toFixed(1)+" "+Y(row.total).toFixed(1)+" ";
+        });
+        var area=line+"L"+X(rows.length-1).toFixed(1)+" "+Y(0).toFixed(1)+" L"+X(0).toFixed(1)+" "+Y(0).toFixed(1)+" Z";
+        parts.push('<path d="'+area+'" fill="var(--accent-fill)" stroke="none"/>');
+        parts.push('<path d="'+line+'" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>');
+
+        rows.forEach(function(row,index){
+          var last=index===rows.length-1;
+          parts.push('<circle cx="'+X(index).toFixed(1)+'" cy="'+Y(row.total).toFixed(1)+'" r="'+(last?5:3.2)+'" fill="'+(last?"var(--accent)":"var(--surface)")+'" stroke="var(--accent)" stroke-width="2"/>');
+        });
+
+        var lastRow=rows[rows.length-1];
+        parts.push('<text x="'+(X(rows.length-1)-8).toFixed(1)+'" y="'+Math.max(14,Y(lastRow.total)-14).toFixed(1)+'" text-anchor="end" fill="var(--ink)" font-size="13" font-weight="600" font-family="IBM Plex Mono, monospace">'+lastRow.total+'명</text>');
+        parts.push('<line id="cross" x1="0" y1="'+PT+'" x2="0" y2="'+(PT+IH)+'" stroke="var(--accent)" stroke-width="1" opacity="0"/>');
+        parts.push('<rect id="hit" x="'+PL+'" y="'+PT+'" width="'+IW+'" height="'+IH+'" fill="transparent"/>');
+
+        el("chart").innerHTML=parts.join("");
+        wireHover(rows,X,Y,W,H,PL,IW);
+      }
+
+      function wireHover(rows,X,Y,W,H,PL,IW){
+        var svg=el("chart");
+        var hit=document.getElementById("hit");
+        var cross=document.getElementById("cross");
+        var tip=el("tip");
+
+        function move(event){
+          var box=svg.getBoundingClientRect();
+          var px=(event.clientX-box.left)/box.width*W;
+          var index=Math.round((px-PL)/(IW/(rows.length-1)));
+          index=Math.max(0,Math.min(rows.length-1,index));
+          var row=rows[index];
+          cross.setAttribute("x1",X(index));
+          cross.setAttribute("x2",X(index));
+          cross.setAttribute("opacity",".5");
+          tip.innerHTML=(index===0?"현재":index+"년 후")+" · <b>"+row.total+"명</b><br>"+row.classes+"학급 · "+row.status.label;
+          tip.style.opacity=1;
+          var parentBox=svg.parentNode.getBoundingClientRect();
+          var left=box.left+X(index)/W*box.width-parentBox.left;
+          var top=box.top+Y(row.total)/H*box.height-parentBox.top;
+          tip.style.left=Math.min(Math.max(left-tip.offsetWidth/2,4),svg.parentNode.clientWidth-tip.offsetWidth-4)+"px";
+          tip.style.top=(top-tip.offsetHeight-12)+"px";
+        }
+
+        hit.addEventListener("mousemove",move);
+        hit.addEventListener("touchmove",function(event){
+          if(event.touches[0]){move(event.touches[0]);}
+        },{passive:true});
+        hit.addEventListener("mouseleave",function(){
+          tip.style.opacity=0;
+          cross.setAttribute("opacity",0);
+        });
+      }
+
+      function fillTable(rows){
+        el("tbody").innerHTML=rows.map(function(row){
+          return "<tr>"+
+            "<td>"+(row.year===0?"현재":row.year+"년 후")+"</td>"+
+            "<td>현재 "+row.sourceAge+"세</td>"+
+            "<td>"+row.g1+"</td>"+
+            "<td>"+row.g2+"</td>"+
+            "<td>"+row.g3+"</td>"+
+            "<td>"+row.total+"</td>"+
+            "<td>"+row.classes+"</td>"+
+            "<td>"+row.teachers+"</td>"+
+            '<td class="st" style="color:'+row.status.color+'">'+row.status.label+"</td>"+
+          "</tr>";
+        }).join("");
+      }
+
+      function render(){
+        var params={
+          region:el("region").value,
+          start:Number(el("start").value),
+          cap:Number(el("cap").value),
+          out:Number(el("out").value)
+        };
+        var region=DATA[params.region];
+        var cohortIndex=region.ages[15]?region.ages[5]/region.ages[15]*100:0;
+        var rows=simulate(params);
+        var first=rows[0];
+        var last=rows[rows.length-1];
+        var difference=last.total-first.total;
+        var percent=difference/first.total*100;
+        var firstRisk=rows.find(function(row){return row.status.key==="risk";});
+
+        el("region-index").textContent="지수 "+cohortIndex.toFixed(1);
+        el("region-hint").textContent="초 "+formatNumber(region.elementary)+"명 · 중 "+formatNumber(region.middle)+"명 · 고 "+formatNumber(region.high)+"명";
+        el("start-v").textContent=formatNumber(params.start)+"명";
+        el("cap-v").textContent=params.cap+"명";
+        el("out-v").textContent=params.out+"%";
+
+        el("m1").innerHTML=last.total+'<small>명</small>';
+        el("m1d").textContent="현재 "+first.total+"명 대비 "+(difference>=0?"+":"−")+Math.abs(difference)+"명 ("+(percent>=0?"+":"−")+Math.abs(percent).toFixed(1)+"%)";
+        el("m2").innerHTML=last.g1+'<small>명</small>';
+        el("m2d").textContent="전체 "+last.classes+"학급 · 교사 단순 추정 "+last.teachers+"명";
+
+        if(firstRisk){
+          el("m3").innerHTML=firstRisk.year+'<small>년 후</small>';
+          el("m3d").textContent="수업용 위험 기준에 처음 도달";
+        }else{
+          el("m3").innerHTML="없음";
+          el("m3d").textContent="10년 안에는 위험 단계에 도달하지 않음";
+        }
+
+        el("badge").textContent=last.status.label;
+        el("badge").style.color=last.status.color;
+        el("verdict").style.borderLeftColor=last.status.color;
+
+        var message;
+        if(last.status.key==="stable"){
+          message="<strong>"+params.region+"</strong>의 연령 구조를 적용하면 10년 뒤에도 현재 학교 규모의 80% 이상을 유지합니다.";
+        }else if(last.status.key==="shrink"){
+          message="<strong>"+params.region+"</strong>의 연령 구조를 적용하면 10년 뒤 전교생은 <strong>"+last.total+"명</strong>으로 줄지만, 신입생은 한 학급 기준 이상입니다.";
+        }else if(last.status.key==="burden"){
+          message="10년 뒤 전교생은 <strong>"+last.total+"명</strong>입니다. 학년당 한 학급을 안정적으로 구성하기 어려울 수 있습니다.";
+        }else{
+          message="10년 뒤 전교생은 <strong>"+last.total+"명</strong>입니다. 수업용 모형에서 학교 존속을 함께 검토하는 단계입니다.";
+        }
+        el("say").innerHTML=message;
+
+        el("age15").textContent=formatNumber(region.ages[15])+"명";
+        el("age5").textContent=formatNumber(region.ages[5])+"명";
+
+        var reason=params.region+"의 현재 5세는 15세의 "+cohortIndex.toFixed(1)+"%입니다. ";
+        if(cohortIndex<100){
+          reason+="추가 유출이 없어도 10년 뒤 신입생 후보 집단은 현재보다 약 "+(100-cohortIndex).toFixed(1)+"% 작습니다.";
+        }else{
+          reason+="10년 뒤 신입생 후보 집단은 현재보다 큽니다.";
+        }
+        if(params.out>0){
+          reason+=" 여기에 해마다 "+params.out+"%의 추가 유출 조건을 누적했습니다.";
+        }
+        el("reason-text").textContent=reason;
+
+        currentRows=rows;
+        draw(rows,params);
+        fillTable(rows);
+      }
+
+      controlIds.forEach(function(id){
+        el(id).addEventListener("input",render);
+        if(id==="region"){el(id).addEventListener("change",render);}
+      });
+
+      el("reset").addEventListener("click",function(){
+        controlIds.forEach(function(id){el(id).value=DEFAULTS[id];});
+        render();
+      });
+
+      window.addEventListener("resize",function(){
+        if(currentRows.length){render();}
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
